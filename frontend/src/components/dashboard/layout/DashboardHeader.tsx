@@ -1,13 +1,22 @@
-import { Activity, RefreshCw, Settings } from 'lucide-react'
+import { Activity, RefreshCw, Settings, LogOut } from 'lucide-react'
 
 interface DashboardHeaderProps {
   isConnected: boolean
   isRefreshing: boolean
+  routerIp: string
   onRefresh: () => void
   onOpenSettings: () => void
+  onLogout: () => void
 }
 
-export function DashboardHeader({ isConnected, isRefreshing, onRefresh, onOpenSettings }: DashboardHeaderProps) {
+export function DashboardHeader({ 
+  isConnected, 
+  isRefreshing, 
+  routerIp,
+  onRefresh, 
+  onOpenSettings,
+  onLogout 
+}: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
@@ -30,7 +39,7 @@ export function DashboardHeader({ isConnected, isRefreshing, onRefresh, onOpenSe
           </div>
           <div className="flex flex-col items-end">
             <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-500">Router IP</span>
-            <span className="font-mono text-sm text-emerald-400">192.168.100.1</span>
+            <span className="font-mono text-sm text-emerald-400">{routerIp}</span>
           </div>
         </div>
 
@@ -42,6 +51,10 @@ export function DashboardHeader({ isConnected, isRefreshing, onRefresh, onOpenSe
           </button>
           <button onClick={onOpenSettings} className="group rounded-lg p-2 transition-colors hover:bg-slate-800">
             <Settings className="h-5 w-5 text-slate-400 transition-colors group-hover:text-white" />
+          </button>
+          <div className="h-4 w-[1px] bg-slate-800 mx-1" />
+          <button onClick={onLogout} className="group rounded-lg p-2 transition-colors hover:bg-red-500/10">
+            <LogOut className="h-5 w-5 text-slate-500 transition-colors group-hover:text-red-400" />
           </button>
         </div>
       </div>

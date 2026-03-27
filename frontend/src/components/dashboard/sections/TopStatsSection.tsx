@@ -7,25 +7,26 @@ interface TopStatsSectionProps {
   ispInfo: ISPInfo
   currentStats: NetworkStats
   healthScore: number
+  downloadTrend: string
 }
 
-export function TopStatsSection({ ispInfo, currentStats, healthScore }: TopStatsSectionProps) {
+export function TopStatsSection({ ispInfo, currentStats, healthScore, downloadTrend }: TopStatsSectionProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
       <div className="grid grid-cols-1 gap-4 md:col-span-3 md:grid-cols-3">
         <StatCard
           label="ISP Provider"
-          value={ispInfo.provider}
-          icon={<Database className="h-5 w-5" />}
-          color={ispInfo.securityStatus === 'optimal' ? 'purple' : 'emerald'}
-          trend={ispInfo.securityStatus === 'optimal' ? 'SECURE' : 'UNSECURE'}
+          value={ispInfo.securityStatus === 'scanning' ? 'Scanning...' : ispInfo.provider}
+          icon={<Database className={`h-5 w-5 ${ispInfo.securityStatus === 'scanning' ? 'animate-pulse' : ''}`} />}
+          color={ispInfo.securityStatus === 'scanning' ? 'purple' : 'emerald'}
+          trend={ispInfo.securityStatus === 'scanning' ? 'PROCESSING' : 'SECURE'}
         />
         <StatCard
           label="Current Download"
           value={`${currentStats.download} Mbps`}
           icon={<Download className="h-5 w-5" />}
           color="emerald"
-          trend="+2.4%"
+          trend={downloadTrend}
         />
         <StatCard
           label="Public IP"

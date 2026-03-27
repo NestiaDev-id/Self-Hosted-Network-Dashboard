@@ -1,13 +1,26 @@
+import { useState } from 'react'
 import { motion } from 'motion/react'
 
 interface ActionModalProps {
   title: string
   description: string
+  confirmText?: string
   onConfirm: () => void
   onClose: () => void
+  isDanger?: boolean
 }
 
-export function ActionModal({ title, description, onConfirm, onClose }: ActionModalProps) {
+export function ActionModal({ 
+  title, 
+  description, 
+  confirmText, 
+  onConfirm, 
+  onClose,
+  isDanger = true 
+}: ActionModalProps) {
+  const [input, setInput] = useState('')
+  const isValid = !confirmText || input === confirmText
+
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       <motion.div
@@ -26,6 +39,22 @@ export function ActionModal({ title, description, onConfirm, onClose }: ActionMo
         <div className="p-6">
           <h3 className="text-lg font-bold text-white">{title}</h3>
           <p className="mt-2 text-sm leading-relaxed text-slate-400">{description}</p>
+          
+          {confirmText && (
+            <div className="mt-6 space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                Type <span className="text-white">"{confirmText}"</span> to confirm
+              </label>
+              <input
+                type="text"
+                autoFocus
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={confirmText}
+                className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2 text-sm text-white focus:border-red-500/50 focus:outline-none"
+              />
+            </div>
+          )}
         </div>
         <div className="flex gap-3 border-t border-slate-800 bg-slate-950/50 p-4">
           <button
@@ -36,9 +65,14 @@ export function ActionModal({ title, description, onConfirm, onClose }: ActionMo
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 rounded-xl bg-red-500 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-400"
+            disabled={!isValid}
+            className={`flex-1 rounded-xl py-2.5 text-xs font-bold text-white transition-all ${
+              isValid 
+                ? isDanger ? 'bg-red-500 hover:bg-red-400' : 'bg-emerald-500 hover:bg-emerald-400'
+                : 'bg-slate-800 opacity-50 cursor-not-allowed text-slate-500'
+            }`}
           >
-            Confirm Action
+            Confirm
           </button>
         </div>
       </motion.div>

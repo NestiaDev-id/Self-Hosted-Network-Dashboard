@@ -10,7 +10,7 @@ export interface ISPInfo {
   ip: string
   location: string
   type: string
-  securityStatus: 'optimal' | 'warning' | 'alert'
+  securityStatus: 'optimal' | 'warning' | 'alert' | 'scanning'
 }
 
 export interface Device {
@@ -33,4 +33,6 @@ export interface ConfirmAction {
   label: string
   title: string
   desc: string
+  confirmText?: string
+  isDanger?: boolean
 }

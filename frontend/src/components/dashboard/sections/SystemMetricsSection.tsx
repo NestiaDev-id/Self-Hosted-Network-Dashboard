@@ -2,9 +2,11 @@ import { Clock, Cpu, HardDrive } from 'lucide-react'
 
 interface SystemMetricsSectionProps {
   cpuLoad: number
+  memoryUsage: string
+  uptime: string
 }
 
-export function SystemMetricsSection({ cpuLoad }: SystemMetricsSectionProps) {
+export function SystemMetricsSection({ cpuLoad, memoryUsage, uptime }: SystemMetricsSectionProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       <div className="flex items-center gap-4 rounded-xl border border-slate-800/60 bg-slate-900/40 p-4">
@@ -22,7 +24,7 @@ export function SystemMetricsSection({ cpuLoad }: SystemMetricsSectionProps) {
         </div>
         <div>
           <p className="text-[10px] font-bold uppercase text-slate-500">Memory</p>
-          <p className="text-sm font-semibold text-white">256MB / 512MB</p>
+          <p className="text-sm font-semibold text-white">{memoryUsage}</p>
         </div>
       </div>
       <div className="flex items-center gap-4 rounded-xl border border-slate-800/60 bg-slate-900/40 p-4">
@@ -31,7 +33,7 @@ export function SystemMetricsSection({ cpuLoad }: SystemMetricsSectionProps) {
         </div>
         <div>
           <p className="text-[10px] font-bold uppercase text-slate-500">Uptime</p>
-          <p className="text-sm font-semibold text-white">14d 06h 22m</p>
+          <p className="text-sm font-semibold text-white">{uptime}</p>
         </div>
       </div>
     </div>
