@@ -12,16 +12,19 @@ A **High-Performance Network Interface Layer** for monitoring and controlling ro
 ## ✨ Key Features
 
 ### 🦀 Rust High-Performance Engine
+
 - **Memory Safety**: Zero-allocation parsing to protect routers with limited RAM.
 - **Axum & Tokio**: Blazing-fast concurrent requests with virtually zero overhead.
 - **Hardware Parser**: Specialized Regex logic for Huawei/ZTE GPON ONT data extraction.
 
 ### 🛡️ Smart Safety & Protection
+
 - **Triple-Confirm Reboot**: Mandatory text confirmation ("REBOOT") plus a final warning checkpoint to prevent accidental network resets.
 - **Loop Rejection Guard**: Integrated 500ms debounce in the Rust backend to prevent router overload (anti-brute force protection).
 - **Eco-Mode for Huawei**: Default **30s** refresh interval and auto-sanitizer for older HG8245H hardware.
 
 ### 💎 Premium UX/UI
+
 - **Glassmorphism Design**: Frosted-glass components with nested gradients and emerald/blue accents.
 - **Smart Switch UI**: The **Guest WiFi** button acts as a persistent toggle with visual status (emerald glow when active).
 - **Reactive Logs**: Integrated system terminal with jump-to-logs navigation.
@@ -31,6 +34,7 @@ A **High-Performance Network Interface Layer** for monitoring and controlling ro
 ## 🏗️ Architecture
 
 NetDash uses a hybrid model to offload compute-heavy tasks from the router:
+
 1. **Router (HW)**: Supplies raw data (HTML/XML).
 2. **Rust Backend (Axum)**: Receives raw data, parses it instantly via Regex, and returns clean JSON.
 3. **React Frontend (Vite)**: Displays metrics and handles user interactions.
@@ -40,29 +44,43 @@ NetDash uses a hybrid model to offload compute-heavy tasks from the router:
 ## 🚀 Getting Started
 
 ### 1. Backend (Rust)
+
 From the root directory:
+
 ```bash
 cargo run
 ```
+
 The server will start on `http://127.0.0.1:3000`.
 
 ### 2. Frontend (React)
+
 Move to the frontend directory:
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Requests to `/api` are automatically proxied to the Rust backend via `vite.config.ts`.
+
+### 3. Run locally with Vercel Functions (Rust + Frontend)
+
+From the project root:
+
+```bash
+vercel dev
+```
+
+This runs Vercel Rust Function endpoints from `api/` (including `/api/process`) and serves the frontend in one local environment.
 
 ---
 
 ## 📂 Project Structure
 
-- `src/`: High-performance Rust backend (Axum).
+- `api/`: Rust Vercel Functions entrypoints.
+- `src/`: Shared Rust parser/core logic for functions.
 - `frontend/src/`: Modern React dashboard UI.
 - `frontend/src/components/dashboard/`: Modular UI sections (Metrics, Quick Actions, etc.).
-- `frontend/api/`: (Legacy) Deleted to prioritize Rust-native performance.
 
 ---
 
@@ -80,6 +98,7 @@ Requests to `/api` are automatically proxied to the Rust backend via `vite.confi
 ---
 
 ## 📄 License
+
 Distributed under the MIT License. See `LICENSE` for more information.
 
-*Built with ❤️ by NestiaDev-Id.*
+_Built with ❤️ by NestiaDev-Id._

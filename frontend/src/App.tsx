@@ -149,8 +149,8 @@ function App() {
 
   // 2. Sanitize old fast settings (Huawei HG8245H Protection)
   useEffect(() => {
-    const fastIntervals = ['1s', '3s', '5s', '10s'];
-    if (fastIntervals.includes(refreshInterval)) {
+    const intervalSeconds = Number.parseInt(refreshInterval, 10);
+    if (!Number.isFinite(intervalSeconds) || intervalSeconds < 30) {
       setRefreshInterval('30s');
       addLog('Eco-Mode: Auto-adjusted to 30s (Huawei Protection)', 'warning');
     }
@@ -227,7 +227,7 @@ function App() {
 
     // Adjust interval if router is struggling
     const multiplier = isRouterStruggling ? 2 : 1;
-    const trafficMs = (parseInt(refreshInterval) || 3) * 1000 * multiplier;
+    const trafficMs = (Number.parseInt(refreshInterval, 10) || 30) * 1000 * multiplier;
     
     const trafficTimer = setInterval(() => {
       fetchRouterData('traffic');

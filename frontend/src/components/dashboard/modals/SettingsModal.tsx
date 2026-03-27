@@ -70,7 +70,6 @@ export function SettingsModal({
               onChange={(e) => setRefreshInterval(e.target.value)}
               className="w-full appearance-none rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-300 transition-colors focus:border-emerald-500/50 focus:outline-none"
             >
-              <option value="15s">15 Seconds (Fast)</option>
               <option value="30s">30 Seconds (Standard)</option>
               <option value="60s">1 Minute (Eco Mode)</option>
               <option value="300s">5 Minutes (Ultra Save)</option>

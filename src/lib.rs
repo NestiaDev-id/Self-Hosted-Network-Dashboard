@@ -1,21 +1,18 @@
-use axum::{
-    extract::Json,
-    http::StatusCode,
-    response::IntoResponse,
-    routing::post,
-    Router,
-};
+use chrono::Local;
+use rand::random;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use serde_json::{Value, json, to_value};
 use std::sync::LazyLock;
-use tower_http::cors::{Any, CorsLayer};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Deserialize)]
-struct ProcessRequest {
+pub struct ProcessRequest {
     #[serde(rename = "rawData")]
-    raw_data: String,
+    pub raw_data: String,
     #[serde(rename = "type")]
-    req_type: String,
+    pub req_type: String,
 }
 
 #[derive(Serialize)]
@@ -65,58 +62,36 @@ static TX_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"(?i)TotalBytesSent["']?\s*[:=]\s*(\d+)"#).unwrap()
 });
 
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
-
 static LAST_REQUEST_MS: AtomicU64 = AtomicU64::new(0);
 
-#[tokio::main]
-async fn main() {
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_headers(Any)
-        .allow_methods(Any);
-
-    let app = Router::new()
-        .route("/api/process", post(process_data))
-        .layer(cors);
-
-    println!("NetDash Rust Backend running on http://127.0.0.1:3000");
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .unwrap();
-    axum::serve(listener, app).await.unwrap();
-}
-
-async fn process_data(Json(payload): Json<ProcessRequest>) -> impl IntoResponse {
-    // 🛡️ BACKEND PROTECTION (Router Loop Rejection Guard)
+pub fn process_payload(payload: ProcessRequest) -> (u16, Value) {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_millis() as u64;
-    
+
     let last = LAST_REQUEST_MS.load(Ordering::Relaxed);
-    if now - last < 500 { // Reject if requests are < 500ms apart
+    if now.saturating_sub(last) < 500 {
         return (
-            StatusCode::TOO_MANY_REQUESTS,
-            Json(serde_json::json!({"error": "Rate limit: Request ignored to protect router CPU"}))
-        ).into_response();
+            429,
+            json!({"error": "Rate limit: Request ignored to protect router CPU"}),
+        );
     }
     LAST_REQUEST_MS.store(now, Ordering::Relaxed);
 
-    let raw = &payload.raw_data;
+    let raw = payload.raw_data;
 
     match payload.req_type.as_str() {
         "isp_info" => {
             let mut ip = "36.85.xxx.xxx".to_string();
-            if let Some(caps) = IP_REGEX.captures(raw) {
+            if let Some(caps) = IP_REGEX.captures(&raw) {
                 if let Some(m) = caps.get(1).or_else(|| caps.get(2)) {
                     ip = m.as_str().to_string();
                 }
             }
 
             let mut provider = "Telkom Indonesia (Fiber)".to_string();
-            if let Some(caps) = PROVIDER_REGEX.captures(raw) {
+            if let Some(caps) = PROVIDER_REGEX.captures(&raw) {
                 if let Some(m) = caps.get(1).or_else(|| caps.get(2)) {
                     provider = m.as_str().to_string();
                 }
@@ -135,14 +110,14 @@ async fn process_data(Json(payload): Json<ProcessRequest>) -> impl IntoResponse 
                 conn_type: "Fiber Optic (GPON)".to_string(),
                 security_status: security,
             };
-            (StatusCode::OK, Json(serde_json::to_value(info).unwrap()))
+            (200, to_value(info).unwrap())
         }
         "devices" => {
             let mut devices = Vec::new();
-            for caps in DEVICE_REGEX.captures_iter(raw) {
+            for caps in DEVICE_REGEX.captures_iter(&raw) {
                 let name = caps.get(1).map(|m| m.as_str()).unwrap_or("Unknown").to_string();
                 let ip = caps.get(2).map(|m| m.as_str()).unwrap_or("0.0.0.0").to_string();
-                
+
                 let dev_type = {
                     let name_lower = name.to_lowercase();
                     if name_lower.contains("iphone") || name_lower.contains("android") {
@@ -153,12 +128,12 @@ async fn process_data(Json(payload): Json<ProcessRequest>) -> impl IntoResponse 
                 };
 
                 devices.push(Device {
-                    id: format!("{:x}", rand::random::<u32>()),
+                    id: format!("{:x}", random::<u32>()),
                     name,
                     dev_type,
                     ip,
                     status: "online".to_string(),
-                    bandwidth: rand::random::<u32>() % 15,
+                    bandwidth: random::<u32>() % 15,
                 });
             }
 
@@ -181,14 +156,14 @@ async fn process_data(Json(payload): Json<ProcessRequest>) -> impl IntoResponse 
                 });
             }
 
-            (StatusCode::OK, Json(serde_json::to_value(devices).unwrap()))
+            (200, to_value(devices).unwrap())
         }
         "traffic" => {
             let mut total_string = "1.2 TB".to_string();
-            let mut download = rand::random::<u32>() % 50;
-            let mut upload = rand::random::<u32>() % 10;
+            let mut download = random::<u32>() % 50;
+            let mut upload = random::<u32>() % 10;
 
-            if let Some(caps) = RX_REGEX.captures(raw) {
+            if let Some(caps) = RX_REGEX.captures(&raw) {
                 if let Ok(rx_bytes) = caps.get(1).unwrap().as_str().parse::<u64>() {
                     download = ((rx_bytes / (1024 * 1024)) % 100) as u32;
                     let tb = rx_bytes as f64 / (1024_f64.powi(4));
@@ -196,7 +171,7 @@ async fn process_data(Json(payload): Json<ProcessRequest>) -> impl IntoResponse 
                 }
             }
 
-            if let Some(caps) = TX_REGEX.captures(raw) {
+            if let Some(caps) = TX_REGEX.captures(&raw) {
                 if let Ok(tx_bytes) = caps.get(1).unwrap().as_str().parse::<u64>() {
                     upload = ((tx_bytes / (1024 * 1024)) % 20) as u32;
                 }
@@ -206,12 +181,10 @@ async fn process_data(Json(payload): Json<ProcessRequest>) -> impl IntoResponse 
                 download,
                 upload,
                 total_received: total_string,
-                timestamp: chrono::Local::now().format("%I:%M:%S %p").to_string(),
+                timestamp: Local::now().format("%I:%M:%S %p").to_string(),
             };
-            (StatusCode::OK, Json(serde_json::to_value(stats).unwrap()))
+            (200, to_value(stats).unwrap())
         }
-        _ => {
-            (StatusCode::BAD_REQUEST, Json(serde_json::json!({"error": "Unknown type"})))
-        }
+        _ => (400, json!({"error": "Unknown type"})),
     }
 }
